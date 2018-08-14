@@ -3,7 +3,7 @@
 require_once '../config.php';
 
 // Define variables and initialize with empty values
-$username = $password = $confirm_password = "";
+$username = $password = $FullName = $confirm_password = "";
 $email = $password = $confirm_password = "";
 $username_err = $password_err = $confirm_password_err = "";
 $email_err = $password_err = $confirm_password_err = "";
@@ -16,7 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $username_err = "ادخل اسم المستخدم.";
     } else {
         // Prepare a select statement
-        $sql = "SELECT id FROM Users WHERE Username = :username";
+        $sql = "SELECT id FROM Admin WHERE Username = :username";
 
         if ($stmt = $conn->prepare($sql)) {
             // Bind variables to the prepared statement as parameters
@@ -46,7 +46,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $email_err = "ادخل البريدالالكتروني.";
     } else {
         // Prepare a select statement
-        $sql = "SELECT id FROM Users WHERE Email = :email";
+        $sql = "SELECT id FROM Admin WHERE Email = :email";
 
         if ($stmt = $conn->prepare($sql)) {
             // Bind variables to the prepared statement as parameters
@@ -61,6 +61,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $email_err = "البريد الالكتروني موجود.";
                 } else {
                     $email = trim($_POST["email"]);
+                }
+            } else {
+                echo "خطاء عاود في وقت لاحق.";
+            }
+        }
+
+        // Close statement
+        unset($stmt);
+    }
+    // Validate FullName
+    if (empty(trim($_POST["FullName"]))) {
+        $email_err = "FullName.";
+    } else {
+        // Prepare a select statement
+        $sql = "SELECT id FROM Admin WHERE FullName = :FullName";
+
+        if ($stmt = $conn->prepare($sql)) {
+            // Bind variables to the prepared statement as parameters
+            $stmt->bindParam(':FullName', $param_FullName, PDO::PARAM_STR);
+
+            // Set parameters
+            $param_FullName = trim($_POST["FullName"]);
+
+            // Attempt to execute the prepared statement
+            if ($stmt->execute()) {
+                if ($stmt->rowCount() == 1) {
+                    $email_err = " موجود.";
+                } else {
+                    $email = trim($_POST["FullName"]);
                 }
             } else {
                 echo "خطاء عاود في وقت لاحق.";
@@ -94,10 +123,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($username_err) && empty($password_err) && empty($confirm_password_err)) {
 
         // Prepare an insert statement
-        $sql = "INSERT INTO Users (username, Email, password) VALUES (:username, :email, :password)";
+        $sql = "INSERT INTO Admin ( FullName, username, Email, password) VALUES (:FullName, :username, :email, :password)";
 
         if ($stmt = $conn->prepare($sql)) {
             // Bind variables to the prepared statement as parameters
+            $stmt->bindParam(':FullName', $param_FullName, PDO::PARAM_STR);
             $stmt->bindParam(':username', $param_username, PDO::PARAM_STR);
             $stmt->bindParam(':email', $param_email, PDO::PARAM_STR);
             $stmt->bindParam(':password', $param_password, PDO::PARAM_STR);
@@ -132,10 +162,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="wrapper">
         <div class="card">
             <div class="card-body">
-                <h2> تسجيل عضو جديد</h2>
+                <h2> اضافة موظف</h2>
                 <!--                <p>Please fill this form to create an account.</p>-->
                 <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
 
+
+                    <div class="form-group">
+                        <label>الاسم
+                            <input type="text" name="FullName" class="form-control">
+                        </label>
+                    </div>
 
                     <div class="form-group <?php echo (!empty($email_err)) ? 'has-error' : ''; ?>">
                         <label>البريد الالكتروني
